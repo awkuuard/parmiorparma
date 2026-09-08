@@ -109,23 +109,55 @@ export default function Home() {
   }
 }
 
-  function submitEmail() {
-    if (!validate('email', email)) return
-    setEntries(2)
-    setStep('data')
+  async function submitEmail() {
+  if (!validate('email', email)) return
+  setEntries(2)
+  setStep('data')
+
+  try {
+    await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, side, voteId }),
+    })
+  } catch (err) {
+    console.error('Email submit failed:', err)
   }
+}
 
   function skipEmail() {
     setStep('data')
   }
 
-  function submitData() {
-    const vOk = validate('venue', venueName)
-    const pOk = validate('price', price)
-    if (!vOk || !pOk) return
-    setEntries(prev => prev + 3)
-    setStep('done')
+  async function submitData() {
+  const vOk = validate('venue', venueName)
+  const pOk = validate('price', price)
+  if (!vOk || !pOk) return
+  setEntries(prev => prev + 3)
+  setStep('done')
+
+  try {
+    await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        voteId,
+        email,
+        side,
+        venueName,
+        suburb,
+        pricePaid: price,
+        isSpecial,
+        dayOfWeek,
+        variant,
+        venueType,
+        isMemberPrice: isMember,
+      }),
+    })
+  } catch (err) {
+    console.error('Data submit failed:', err)
   }
+}
 
   function skipData() {
     setStep('done')
