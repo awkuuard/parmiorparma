@@ -29,6 +29,7 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 export default function Home() {
   const [side, setSide] = useState<Side>(null)
   const [step, setStep] = useState<Step>('vote')
+  const [voteId, setVoteId] = useState<string | null>(null)
   const [entries, setEntries] = useState(0)
   const [email, setEmail] = useState('')
   const [venueName, setVenueName] = useState('')
@@ -48,11 +49,23 @@ export default function Home() {
 
   // Seed realistic vote counts on load
   useEffect(() => {
-    const parmi = 1997 + Math.floor(Math.random() * 200)
-    const parma = 1850 + Math.floor(Math.random() * 200)
-    setParmiPct(Math.round((parmi / (parmi + parma)) * 100))
-    setTotalVotes(parmi + parma)
-  }, [])
+  fetch('/api/vote')
+    .then(r => r.json())
+    .then(d => {
+      if (d.split) {
+        const parmi = d.split.find((s: {side: string, votes: number}) => s.side === 'parmi')?.votes ?? 1997
+        const parma = d.split.find((s: {side: string, votes: number}) => s.side === 'parma')?.votes ?? 1850
+        const total = parmi + parma
+        setParmiPct(Math.round((parmi / total) * 100))
+        setTotalVotes(total)
+      }
+    })
+    .catch(() => {
+      // Fall back to seeded data if Supabase unavailable
+      setParmiPct(52)
+      setTotalVotes(3847)
+    })
+}, [])
 
   function validate(field: string, value: string) {
     const e = { ...errors }
@@ -75,14 +88,26 @@ export default function Home() {
     return Object.keys(e).length === 0
   }
 
-  function castVote(s: Side) {
-    if (step !== 'vote') return
-    setSide(s)
-    setEntries(1)
-    setParmiPct(prev => s === 'parmi' ? Math.min(prev + 1, 99) : Math.max(prev - 1, 1))
-    setTotalVotes(prev => prev + 1)
-    setStep('email')
+  async function castVote(s: Side) {
+  if (step !== 'vote') return
+  setSide(s)
+  setEntries(1)
+  setParmiPct(prev => s === 'parmi' ? Math.min(prev + 1, 99) : Math.max(prev - 1, 1))
+  setTotalVotes(prev => prev + 1)
+  setStep('email')
+
+  try {
+    const res = await fetch('/api/vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ side: s }),
+    })
+    const data = await res.json()
+    if (data.voteId) setVoteId(data.voteId)
+  } catch (err) {
+    console.error('Vote failed to save:', err)
   }
+}
 
   function submitEmail() {
     if (!validate('email', email)) return
