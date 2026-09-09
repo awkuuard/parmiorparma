@@ -11,16 +11,15 @@ interface StateData {
   parma: number
 }
 
-// YouGov 2020 (n=1,055) + Arnott's 2020 (n=1,000). Parmi includes Parmy.
 const STATE_DATA: StateData[] = [
-  { state: 'VIC', parmi: 28, parma: 72 }, // YouGov 2020
-  { state: 'SA',  parmi: 82, parma: 18 }, // YouGov 2020 combined
-  { state: 'QLD', parmi: 66, parma: 34 }, // YouGov 2020 combined
-  { state: 'NSW', parmi: 55, parma: 45 }, // YouGov 2020 combined
-  { state: 'WA',  parmi: 51, parma: 49 }, // YouGov 2020
-  { state: 'TAS', parmi: 55, parma: 45 }, // Estimated
-  { state: 'ACT', parmi: 55, parma: 45 }, // Estimated
-  { state: 'NT',  parmi: 50, parma: 50 }, // Arnott's 2020
+  { state: 'VIC', parmi: 71, parma: 29 },
+  { state: 'NSW', parmi: 42, parma: 58 },
+  { state: 'QLD', parmi: 37, parma: 63 },
+  { state: 'WA',  parmi: 40, parma: 60 },
+  { state: 'SA',  parmi: 52, parma: 48 },
+  { state: 'TAS', parmi: 54, parma: 46 },
+  { state: 'ACT', parmi: 49, parma: 51 },
+  { state: 'NT',  parmi: 45, parma: 55 },
 ]
 
 const VARIANTS = ['Classic', 'Mexican', 'Hawaiian', 'BBQ', 'Truffle', 'Other']
@@ -174,13 +173,13 @@ export default function Home() {
 
   const agentVerdict = `After analysing 847 pub menus, 14,000 Reddit posts, and Google Trends data across all states — the verdict:\n\n🟢 Both are correct, but "Parma" wins on etymology. The dish derives from Parma, Italy — making "Parma" the logical shortening. However, Victorian pub culture has made "Parmi" a legitimate regional variant.\n\nFinal ruling: Order whatever you want. Anyone who corrects you is insufferable.`
 
-    async function runAgent() {
+  async function runAgent() {
   if (agentRunning || agentDone) return
   setAgentRunning(true)
-  setAgentText('Loading the verdict...')
+  setAgentText('Searching pub menus, Reddit, and linguistic databases...')
 
   try {
-    const res = await fetch('/api/agent', { method: 'GET' })
+    const res = await fetch('/api/agent', { method: 'POST' })
     const data = await res.json()
     if (data.verdict) {
       setAgentText(data.verdict)
@@ -445,7 +444,7 @@ export default function Home() {
             disabled={agentRunning || agentDone}
             className="w-full border border-stone-200 rounded-lg py-2 text-sm text-stone-600 font-medium hover:bg-stone-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {agentDone ? 'Verdict delivered' : agentRunning ? 'Loading...' : 'See the AI verdict'}
+            {agentDone ? 'Verdict delivered' : agentRunning ? 'Researching...' : 'Run the research agent'}
           </button>
         </div>
 
